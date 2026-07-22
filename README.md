@@ -14,6 +14,13 @@ MediConnect AI es un agente conversacional inteligente diseñado para la atenci�
 
 ---
 
+## 📸 Evidencia de Despliegue y Funcionamiento
+
+### Instancia Activa en Oracle Cloud Infrastructure
+![Instancia OCI](assets/oci-instance.png.jpeg)
+
+### Flujo de Trabajo en n8n y Chat
+![Flujo n8n](assets/evidencia-n8n.png.jpeg)
 ## 📂 Estructura del Repositorio
 
 ```text
