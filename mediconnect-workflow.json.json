@@ -1,0 +1,356 @@
+{
+  "name": "agente-mediconnect",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "360e79d0-a4a5-449a-a4d4-6f3848160a77",
+      "name": "When chat message received",
+      "webhookId": "6c83a04d-3af5-431d-b0cb-3d31a6eb5cf8"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "4ba8fb96-0cf0-4bf6-89ef-7019129bea8f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        192
+      ],
+      "id": "9378e341-548b-41c4-b60f-7c7b4ca466cd",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "description": "Base de datos de conocimiento de MediConnect Clinic. Contiene información sobre normas, servicios, horarios, preguntas frecuentes, guías medicas y datos del personal. "
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolVectorStore",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        256
+      ],
+      "id": "b6686adf-8378-4f34-8313-6d03a0aead26",
+      "name": "Answer questions with a vector store"
+    },
+    {
+      "parameters": {
+        "url": "https://raw.githubusercontent.com/Pilar-1231/agente-mediconnect-oci/main/data_clinica/Documento_Completo_MediConnect_Clinic_2026.pdf",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -320,
+        208
+      ],
+      "id": "32c78130-8a65-4bdd-bb03-0b7b2b6cd6be",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "memoryKey": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vector_store_key"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        240,
+        464
+      ],
+      "id": "089faf7f-e4af-4839-a2b5-7b7fd3ba9cfa",
+      "name": "Simple Vector Store"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "mode": "list",
+          "value": "vector_store_key"
+        },
+        "clearStore": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        -112,
+        448
+      ],
+      "id": "4446eb9a-d777-48a2-99c8-1b3c0f26e1ac",
+      "name": "Simple Vector Store1"
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        48,
+        608
+      ],
+      "id": "6437489c-807f-45d8-b3fa-3fd69536b6be",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Mapeo dinámico de extensiones a Mime Types comunes\nconst mimeMap = {\n  pdf: 'application/pdf',\n  txt: 'text/plain',\n  csv: 'text/csv',\n  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',\n  doc: 'application/msword',\n  json: 'application/json'\n};\n\nfor (const item of $input.all()) {\n  if (item.binary && item.binary.data) {\n    const ext = item.binary.data.fileExtension?.toLowerCase();\n    \n    // Si GitHub nos devolvió octet-stream, lo corregimos según la extensión\n    if (item.binary.data.mimeType === 'application/octet-stream' && ext && mimeMap[ext]) {\n      item.binary.data.mimeType = mimeMap[ext];\n    }\n  }\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        208
+      ],
+      "id": "e49438f4-c6d1-439e-8481-3bd0730a0c29",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "modelName": "embed-english-v3.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsCohere",
+      "typeVersion": 1,
+      "position": [
+        -160,
+        656
+      ],
+      "id": "d3eea462-81ee-4604-b68e-db4c224da072",
+      "name": "Embeddings Cohere",
+      "credentials": {
+        "cohereApi": {
+          "id": "Z1Aeq4TL1kQjMgjj",
+          "name": "Cohere account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "embed-english-v3.0"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsCohere",
+      "typeVersion": 1,
+      "position": [
+        336,
+        672
+      ],
+      "id": "6c4b79a8-e65c-4438-a78c-898dada5df93",
+      "name": "Embeddings Cohere1",
+      "credentials": {
+        "cohereApi": {
+          "id": "Z1Aeq4TL1kQjMgjj",
+          "name": "Cohere account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        80,
+        208
+      ],
+      "id": "073c93bb-2fb1-4713-9e2b-70208c3ba6c3",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "jZtnB5VmlvbclnHi",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        576,
+        400
+      ],
+      "id": "b290ca61-6745-4b1d-9098-a53b40bff30b",
+      "name": "Groq Chat Model1",
+      "credentials": {
+        "groqApi": {
+          "id": "jZtnB5VmlvbclnHi",
+          "name": "Groq account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Answer questions with a vector store": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Vector Store": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Simple Vector Store1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Simple Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Cohere": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Simple Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Cohere1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Answer questions with a vector store",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "8bcc273d-d5e1-43a6-8657-ef42e0bcfcb0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "92b9f024a7bb67bb56bacbb8c28970b26fede521f707c0d0b0a372f16e0a6e21"
+  },
+  "nodeGroups": [],
+  "id": "8NuysOjK5QYBUYuW",
+  "tags": []
+}
